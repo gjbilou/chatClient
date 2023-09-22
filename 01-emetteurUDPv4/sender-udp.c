@@ -13,7 +13,7 @@
 
 int main (int argc, char *argv [])
 {
-    int portNbrUsr = 1;
+    int portNbrDest = 1;
     
     /* test arg number */
     
@@ -25,8 +25,8 @@ int main (int argc, char *argv [])
 
     /* convert and check port number */
 
-    portNbrUsr = atoi(argv[1]);
-    if (!(portNbrUsr >= 10000 && portNbrUsr <= 65000))
+    portNbrDest = atoi(argv[1]);
+    if (!(portNbrDest >= 10000 && portNbrDest <= 65000))
     {
         perror("Argument given is not a port number");
         exit(EXIT_FAILURE);
@@ -36,21 +36,22 @@ int main (int argc, char *argv [])
 
     int sktCreated = socket(AF_INET, SOCK_DGRAM, 0);
     CHECK(sktCreated);
-    /* le domaine indique quel protocole reseau a utiliser 
-    le type indique quel socket (nature du socket) a creer 
-    le protocole est la pour indiquer au socket quelle protocole a utilier par defaut parce que le type du socket ne connais pas le protocole a utiliser a l'origine */
-    
+   
     /* complete sockaddr struct */
 
-    struct sockaddr_in receiver = {
-        .
-    };
-
-
+    struct sockaddr_in destinataire = {.sin_family = AF_INET, .sin_port = PORT(portNbrDest), .sin_addr.s_addr = IP};
 
     /* send message to remote peer */
 
+    char msgSend[] = "hello world";
+    int sizeMsgSend = strlen(msgSend);
+
+
+    CHECK(sendto(sktCreated, msgSend, sizeMsgSend, 0, (struct sockaddr*) (&destinataire), sizeof(destinataire)));
+
     /* close socket */
+
+    close(sktCreated);
 
     return 0;
 }
