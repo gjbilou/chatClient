@@ -39,15 +39,18 @@ int main (int argc, char *argv [])
    
     /* complete sockaddr struct */
 
-    struct sockaddr_in destinataire = {.sin_family = AF_INET, .sin_port = PORT(portNbrDest), .sin_addr.s_addr = IP};
+    struct sockaddr_storage dest;
+    struct sockaddr_in* destPointer = (struct sockaddr_in*) &dest;
+    destPointer->sin_family = AF_INET;
+    destPointer->sin_port = PORT(portNbrDest);
+    destPointer->sin_addr.s_addr = IP;
 
     /* send message to remote peer */
 
     char msgSend[] = "hello world";
     int sizeMsgSend = strlen(msgSend);
 
-
-    CHECK(sendto(sktCreated, msgSend, sizeMsgSend, 0, (struct sockaddr*) (&destinataire), sizeof(destinataire)));
+    CHECK(sendto(sktCreated, msgSend, sizeMsgSend, 0, (struct sockaddr*) destPointer, sizeof(*destPointer)));
 
     /* close socket */
 
