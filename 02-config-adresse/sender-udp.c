@@ -49,9 +49,11 @@ int main (int argc, char *argv [])
     int sizeMsgSend = strlen(msgSend);
 
     CHECK(sendto(sktCreated, msgSend, sizeMsgSend, 0, res->ai_addr, res->ai_addrlen));
+
     /* close socket */
-    close(sktCreated);
+
     freeaddrinfo(res);
+    close(sktCreated);
 
     /* free memory */
 
