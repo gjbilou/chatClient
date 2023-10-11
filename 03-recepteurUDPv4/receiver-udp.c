@@ -21,7 +21,7 @@ int main (int argc, char *argv [])
     
     if (argc != 2)
     {
-        perror("No port number indicated");
+		fprintf(stderr, "No port number indicated\n");
         exit(EXIT_FAILURE);
     }
 
@@ -30,7 +30,7 @@ int main (int argc, char *argv [])
     portNbrDest = atoi(argv[1]);
     if (!(portNbrDest >= 10000 && portNbrDest <= 65000))
     {
-        perror("Argument given is not a port number");
+        fprintf(stderr, "Argument given is not a port number\n");
         exit(EXIT_FAILURE);
     }
 
@@ -41,11 +41,20 @@ int main (int argc, char *argv [])
    
     /* complete struct sockaddr */
 
-    struct addrinfo hints = {.ai_family = AF_INET, .ai_socktype = SOCK_DGRAM};
+    struct addrinfo hints;
+	memset(&hints, 0, sizeof(struct addrinfo));
+	hints.ai_family = AF_INET;
+	hints.ai_socktype = SOCK_DGRAM;
     struct addrinfo* res;
 
-    CHECK(getaddrinfo(IP, argv[1], &hints, &res));
 
+
+	if (getaddrinfo(IP, argv[1], &hints, &res))
+	{
+		fprintf(stderr, "getaddrinfo broke\n");
+		exit(EXIT_FAILURE);
+	}
+	
     
     /* link socket to local IP and PORT */
 
@@ -59,7 +68,7 @@ int main (int argc, char *argv [])
 
     /* close socket */
 
-    close(sktCreated);
+    CHECK(close(sktCreated));
 
     /* free memory */
 
