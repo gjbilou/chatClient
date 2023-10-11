@@ -19,7 +19,7 @@ int main (int argc, char *argv [])
     
     if (argc != 2)
     {
-        fprintf(stderr, "No port number indicated\n");
+        perror("No port number indicated");
         exit(EXIT_FAILURE);
     }
 
@@ -40,7 +40,6 @@ int main (int argc, char *argv [])
     /* complete sockaddr struct */
 
     struct sockaddr_storage dest;
-	memset(&dest, 0, sizeof(struct sockaddr_storage));
     struct sockaddr_in* destPointer = (struct sockaddr_in*) &dest;
     destPointer->sin_family = AF_INET;
     destPointer->sin_port = PORT(portNbrDest);
@@ -55,7 +54,7 @@ int main (int argc, char *argv [])
 
     /* close socket */
 
-    CHECK(close(sktCreated));
+    close(sktCreated);
 
     return 0;
 }
