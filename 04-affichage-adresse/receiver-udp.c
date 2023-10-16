@@ -7,83 +7,101 @@
 #include <unistd.h>
 #include <netdb.h>
 
-#define CHECK(op)   do { if ( (op) == -1) { perror (#op); exit (EXIT_FAILURE); } \
-                    } while (0)
+#define CHECK(op)               \
+	do                          \
+	{                           \
+		if ((op) == -1)         \
+		{                       \
+			perror(#op);        \
+			exit(EXIT_FAILURE); \
+		}                       \
+	} while (0)
 
-#define IP   "127.0.0.1"
+#define IP "127.0.0.1"
 #define SIZE 100
 
-int main (int argc, char *argv [])
+int main(int argc, char *argv[])
 {
-    int portNbrDest = 1;
-    
-    /* test arg number */
-    
-    if (argc != 2)
-    {
-        perror("No port number indicated");
-        exit(EXIT_FAILURE);
-    }
+	int portNbrDest = 1;
 
-    /* convert and check port number */
+	/* test arg number */
 
-    portNbrDest = atoi(argv[1]);
-    if (!(portNbrDest >= 10000 && portNbrDest <= 65000))
-    {
-        perror("Argument given is not a port number");
-        exit(EXIT_FAILURE);
-    }
+	if (argc != 3)
+	{
+		fprintf(stderr, "usage: ./receiver-udp ip_addr port_number\n");
+		exit(EXIT_FAILURE);
+	}
 
-    /* create socket */
+	/* convert and check port number */
 
-    int sktCreated = socket(AF_INET, SOCK_DGRAM, 0);
-    CHECK(sktCreated);
-   
-    /* complete struct sockaddr */
+	portNbrDest = atoi(argv[2]);
+	if (!(portNbrDest >= 10000 && portNbrDest <= 65000))
+	{
+		fprintf(stderr, "port value erroneous\n");
+		exit(EXIT_FAILURE);
+	}
 
-    // completer l'addresse a laquelle on va bind le socket. celle de notre
-    // serveur 
-    struct addrinfo hints = {.ai_family = AF_INET, .ai_socktype = SOCK_DGRAM};
-    struct addrinfo* res;
+	/* create socket */
 
-    CHECK(getaddrinfo(IP, argv[1], &hints, &res));
+	int sktCreated = socket(AF_INET, SOCK_DGRAM, 0);
+	CHECK(sktCreated);
 
-    
-    /* link socket to local IP and PORT */
+	/* complete struct sockaddr */
 
-    CHECK(bind(sktCreated, res->ai_addr, res->ai_addrlen));
+	struct addrinfo hints;
+	memset(&hints, 0, sizeof(hints));
+	hints.ai_family = AF_INET;
+	hints.ai_socktype = SOCK_DGRAM;
+	struct addrinfo *res;
 
-    /* wait for incoming message */
+	int rtrnGAI = getaddrinfo(argv[1], argv[2], &hints, &res);
 
-    char msgReceived[SIZE];
-    
-    struct sockaddr_storage src;
-    socklen_t addrlen = sizeof(src);
+	if (rtrnGAI)
+	{
+		fprintf(stderr, "%s\n", gai_strerror(rtrnGAI));
+		exit(EXIT_FAILURE);
+	}
 
-    CHECK(recvfrom(sktCreated, msgReceived, SIZE, 0, (struct sockaddr*) &src, &addrlen));
+	/* link socket to local IP and PORT */
 
-    /* print sender addr and port */
+	CHECK(bind(sktCreated, res->ai_addr, res->ai_addrlen));
 
-    char srcIP[SIZE];
-    char srcPORT[SIZE];
-    CHECK(getnameinfo((struct sockaddr*) &src, addrlen, srcIP, SIZE, srcPORT, SIZE, NI_NUMERICHOST));
-    // ici on doit print les info qu'on va recevoir avec la fonction
-    // getnameinfo qu'on va pouvoir considerer comme l'inverse de la fonction
-    // getaddrinfo. c'est comme la exp et log. 
+	/* wait for incoming message */
 
-    /* print received message */
+	char * msgReceived = calloc(SIZE + 1, sizeof(*msgReceived));
 
-    printf("%s\n", msgReceived);
-    // system("clear");
-    printf("%s %s", srcIP, srcPORT);
+	struct sockaddr_storage src;
+	socklen_t addrlen = sizeof(src);
+	memset(&src, 0, sizeof(addrlen));
 
-    /* close socket */
+	CHECK(recvfrom(sktCreated, msgReceived, SIZE, 0, (struct sockaddr *)&src, &addrlen));
 
-    close(sktCreated);
+	/* print sender addr and port */
 
-    /* free memory */
+	char srcIP[NI_MAXHOST];
+	char srcPORT[NI_MAXSERV];
+	
+	int rtrnGNI = getnameinfo((struct sockaddr *)&src, addrlen, srcIP, NI_MAXHOST, srcPORT, NI_MAXSERV, NI_NUMERICHOST);
+	
+	if (rtrnGNI)
+	{
+		fprintf(stderr, "%s\n", gai_strerror(rtrnGNI));
+		exit(EXIT_FAILURE);
+	}
 
-    freeaddrinfo(res);
+	printf("%s\n", msgReceived);
+	printf("%s %s", srcIP, srcPORT);
 
-    return 0;
+	/* close socket */
+
+	CHECK(close(sktCreated));
+
+	/* free memory */
+
+	free(msgReceived);
+	freeaddrinfo(res);
+
+	/* print received message */
+
+	return 0;
 }
