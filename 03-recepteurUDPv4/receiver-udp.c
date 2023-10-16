@@ -7,76 +7,81 @@
 #include <unistd.h>
 #include <netdb.h>
 
-#define CHECK(op)   do { if ( (op) == -1) { perror (#op); exit (EXIT_FAILURE); } \
-                    } while (0)
+#define CHECK(op)               \
+	do                          \
+	{                           \
+		if ((op) == -1)         \
+		{                       \
+			perror(#op);        \
+			exit(EXIT_FAILURE); \
+		}                       \
+	} while (0)
 
-#define IP   "127.0.0.1"
+#define IP "127.0.0.1"
 #define SIZE 100
 
-int main (int argc, char *argv [])
+int main(int argc, char *argv[])
 {
-    int portNbrDest = 1;
-    
-    /* test arg number */
-    
-    if (argc != 2)
-    {
+	int portNbrDest = 1;
+
+	/* test arg number */
+
+	if (argc != 2)
+	{
 		fprintf(stderr, "No port number indicated\n");
-        exit(EXIT_FAILURE);
-    }
+		exit(EXIT_FAILURE);
+	}
 
-    /* convert and check port number */
+	/* convert and check port number */
 
-    portNbrDest = atoi(argv[1]);
-    if (!(portNbrDest >= 10000 && portNbrDest <= 65000))
-    {
-        fprintf(stderr, "Argument given is not a port number\n");
-        exit(EXIT_FAILURE);
-    }
+	portNbrDest = atoi(argv[1]);
+	if (!(portNbrDest >= 10000 && portNbrDest <= 65000))
+	{
+		fprintf(stderr, "Argument given is not a port number\n");
+		exit(EXIT_FAILURE);
+	}
 
-    /* create socket */
+	/* create socket */
 
-    int sktCreated = socket(AF_INET, SOCK_DGRAM, 0);
-    CHECK(sktCreated);
-   
-    /* complete struct sockaddr */
+	int sktCreated = socket(AF_INET, SOCK_DGRAM, 0);
+	CHECK(sktCreated);
 
-    struct addrinfo hints;
+	/* complete struct sockaddr */
+
+	struct addrinfo hints;
 	memset(&hints, 0, sizeof(struct addrinfo));
 	hints.ai_family = AF_INET;
 	hints.ai_socktype = SOCK_DGRAM;
-    struct addrinfo* res;
-
-
+	hints.ai_protocol = IPPROTO_UDP;
+	struct addrinfo *res;
 
 	if (getaddrinfo(IP, argv[1], &hints, &res))
 	{
 		fprintf(stderr, "getaddrinfo broke\n");
 		exit(EXIT_FAILURE);
 	}
-	
-    
-    /* link socket to local IP and PORT */
 
-    CHECK(bind(sktCreated, res->ai_addr, res->ai_addrlen));
+	/* link socket to local IP and PORT */
 
-    /* wait for incoming message */
+	CHECK(bind(sktCreated, res->ai_addr, res->ai_addrlen));
 
-    char msgReceived[SIZE];
+	/* wait for incoming message */
 
-    CHECK(recvfrom(sktCreated, msgReceived, SIZE, 0, NULL, NULL));
+	char msgReceived[SIZE];
 
-    /* close socket */
+	CHECK(recvfrom(sktCreated, msgReceived, SIZE, 0, NULL, NULL));
 
-    CHECK(close(sktCreated));
+	/* close socket */
 
-    /* free memory */
+	CHECK(close(sktCreated));
 
-    freeaddrinfo(res);
+	/* free memory */
 
-    /* print received message */
+	freeaddrinfo(res);
 
-    printf("%s\n", msgReceived);
+	/* print received message */
 
-    return 0;
+	printf("%s\n", msgReceived);
+
+	return 0;
 }

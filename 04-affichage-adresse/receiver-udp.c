@@ -52,6 +52,7 @@ int main(int argc, char *argv[])
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = AF_INET;
 	hints.ai_socktype = SOCK_DGRAM;
+	hints.ai_protocol = IPPROTO_UDP;
 	struct addrinfo *res;
 
 	int rtrnGAI = getaddrinfo(argv[1], argv[2], &hints, &res);
@@ -68,7 +69,7 @@ int main(int argc, char *argv[])
 
 	/* wait for incoming message */
 
-	char * msgReceived = calloc(SIZE + 1, sizeof(*msgReceived));
+	char *msgReceived = calloc(SIZE + 1, sizeof(*msgReceived));
 
 	struct sockaddr_storage src;
 	socklen_t addrlen = sizeof(src);
@@ -80,9 +81,9 @@ int main(int argc, char *argv[])
 
 	char srcIP[NI_MAXHOST];
 	char srcPORT[NI_MAXSERV];
-	
+
 	int rtrnGNI = getnameinfo((struct sockaddr *)&src, addrlen, srcIP, NI_MAXHOST, srcPORT, NI_MAXSERV, NI_NUMERICHOST);
-	
+
 	if (rtrnGNI)
 	{
 		fprintf(stderr, "%s\n", gai_strerror(rtrnGNI));
