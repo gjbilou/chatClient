@@ -59,6 +59,10 @@ int main(int argc, char *argv[])
 	hints.ai_family = AF_INET;
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_protocol = IPPROTO_TCP;
+	hints.ai_flags = AI_NUMERICHOST|AI_NUMERICSERV;
+	// il faut ajouter les flags pour qu'il n'ait par chercher dans le serveur dhcp pour la completion d'addresse
+	// comme ca il ne travail que avec les addresse ip et les ports numeric
+
 	struct addrinfo *res;
 
 	int rtrngai = getaddrinfo(argv[1], argv[2], &hints, &res);
@@ -103,8 +107,8 @@ int main(int argc, char *argv[])
 
 	/* wait for incoming message */
 
-	char msgReceived[SIZE + 1] = {0};
-	// memset(msgReceived, 0, SIZE + 1);
+	char msgReceived[SIZE + 1];
+	memset(msgReceived, 0, SIZE + 1);
 
 	CHECK(recv(sktAccept, msgReceived, SIZE, 0));
 
