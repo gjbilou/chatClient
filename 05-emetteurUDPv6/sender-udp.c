@@ -52,6 +52,7 @@ int main(int argc, char *argv[])
 	hints.ai_family = AF_INET6;
 	hints.ai_socktype = SOCK_DGRAM;
 	hints.ai_protocol = IPPROTO_UDP;
+	hints.ai_flags = AI_NUMERICHOST|AI_NUMERICSERV;
 	struct addrinfo *res;
 
 	int rtrnGAI = getaddrinfo(argv[1], argv[2], &hints, &res);

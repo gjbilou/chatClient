@@ -51,6 +51,7 @@ int main(int argc, char *argv[])
 	hints.ai_family = AF_INET;
 	hints.ai_socktype = SOCK_DGRAM;
 	hints.ai_protocol = IPPROTO_UDP;
+	hints.ai_flags = AI_NUMERICHOST|AI_NUMERICSERV;
 	struct addrinfo *res;
 
 	if (getaddrinfo(IP, argv[1], &hints, &res))
